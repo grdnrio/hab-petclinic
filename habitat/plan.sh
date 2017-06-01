@@ -18,19 +18,7 @@ pkg_version="0.1.0"
 
 # Optional.
 # The name and email address of the package maintainer.
-# pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-
-# Optional.
-# An array of valid software licenses that relate to this package.
-# Please choose a license from http://spdx.org/licenses/
-# pkg_license=('Apache-2.0')
-
-# Required.
-# A URL that specifies where to download the source from. Any valid wget url
-# will work. Typically, the relative path for the URL is partially constructed
-# from the pkg_name and pkg_version values; however, this convention is not
-# required.
-pkg_source="http://some_source_url/releases/${pkg_name}-${pkg_version}.tar.gz"
+pkg_maintainer="Joe Gardiner <joe@grdnr.io>"
 
 # Optional.
 # The resulting filename for the download, typically constructed from the
@@ -49,11 +37,11 @@ pkg_shasum="TODO"
 # An array of package dependencies needed at runtime. You can refer to packages
 # at three levels of specificity: `origin/package`, `origin/package/version`, or
 # `origin/package/version/release`.
-# pkg_deps=(core/glibc)
+pkg_deps=(core/maven)
 
 # Optional.
 # An array of the package dependencies needed only at build time.
-# pkg_build_deps=(core/make core/gcc)
+pkg_build_deps=(core/maven)
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
@@ -83,7 +71,7 @@ pkg_shasum="TODO"
 # The command for the supervisor to execute when starting a service. You can
 # omit this setting if your package is not intended to be run directly by a
 # supervisor of if your plan contains a run hook in hooks/run.
-# pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+pkg_svc_run="mvnw spring-boot:run"
 
 # Optional.
 # An associative array representing configuration data which should be gossiped to peers. The keys
@@ -170,70 +158,6 @@ do_begin() {
   return 0
 }
 
-# The default implementation is that the software specified in $pkg_source is
-# downloaded, checksum-verified, and placed in $HAB_CACHE_SRC_PATH/$pkgfilename,
-# which resolves to a path like /hab/cache/src/filename.tar.gz. You should
-# override this behavior if you need to change how your binary source is
-# downloaded, if you are not downloading any source code at all, or if your are
-# cloning from git. If you do clone a repo from git, you must override
-# do_verify() to return 0.
-do_download() {
-  do_default_download
-}
-
-# The default implementation tries to verify the checksum specified in the plan
-# against the computed checksum after downloading the source tarball to disk.
-# If the specified checksum doesn't match the computed checksum, then an error
-# and a message specifying the mismatch will be printed to stderr. You should
-# not need to override this behavior unless your package does not download
-# any files.
-do_verify() {
-  do_default_verify
-}
-
-# The default implementation removes the HAB_CACHE_SRC_PATH/$pkg_dirname folder
-# in case there was a previously-built version of your package installed on
-# disk. This ensures you start with a clean build environment.
-do_clean() {
-  do_default_clean
-}
-
-# The default implementation extracts your tarball source file into
-# HAB_CACHE_SRC_PATH. The supported archives are: .tar, .tar.bz2, .tar.gz,
-# .tar.xz, .rar, .zip, .Z, .7z. If the file archive could not be found or was
-# not supported, then a message will be printed to stderr with additional
-# information.
-do_unpack() {
-  do_default_unpack
-}
-
-# There is no default implementation of this callback. At this point in the
-# build process, the tarball source has been downloaded, unpacked, and the build
-# environment variables have been set, so you can use this callback to perform
-# any actions before the package starts building, such as exporting variables,
-# adding symlinks, and so on.
-do_prepare() {
-  return 0
-}
-
-# The default implementation is to update the prefix path for the configure
-# script to use $pkg_prefix and then run make to compile the downloaded source.
-# This means the script in the default implementation does
-# ./configure --prefix=$pkg_prefix && make. You should override this behavior
-# if you have additional configuration changes to make or other software to
-# build and install as part of building your package.
-do_build() {
-  do_default_build
-}
-
-# The default implementation runs nothing during post-compile. An example of a
-# command you might use in this callback is make test. To use this callback, two
-# conditions must be true. A) do_check() function has been declared, B) DO_CHECK
-# environment variable exists and set to true, env DO_CHECK=true.
-do_check() {
-  return 0
-}
-
 # The default implementation is to run make install on the source files and
 # place the compiled binaries or libraries in HAB_CACHE_SRC_PATH/$pkg_dirname,
 # which resolves to a path like /hab/cache/src/packagename-version/. It uses
@@ -243,16 +167,8 @@ do_check() {
 # specific directories in your package, or installing pre-built binaries into
 # your package.
 do_install() {
-  do_default_install
-}
-
-# The default implementation is to strip any binaries in $pkg_prefix of their
-# debugging symbols. You should override this behavior if you want to change
-# how the binaries are stripped, which additional binaries located in
-# subdirectories might also need to be stripped, or whether you do not want the
-# binaries stripped at all.
-do_strip() {
-  do_default_strip
+  cd source
+  mvnw spring-boot:run
 }
 
 # There is no default implementation of this callback. This is called after the
